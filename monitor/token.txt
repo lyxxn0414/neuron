@@ -1,0 +1,22 @@
+mySuP3rS3cr3tT0keN
+Username:          liyue
+  Organization:      neuron-org
+  Bucket:            neuron-bucket
+  Retention Period:  infinite
+ Yes
+User    Organization    Bucket
+liyue   neuron-org      neuron-bucket
+
+
+
+2fSh86dOM4y3sXImYFJ6P-yT2on9d22A8f4VfABQbVMhV4IfS4LjZyhdZq4HLdbFcLDccpaLZqZBbhRF_2EmCQ== 
+
+查询info：
+influx query -o neuron-org 'from(bucket:"neuron-bucket") |> range(start:-1h) |> filter(fn: (r) => r._measurement == "Info")' -t 2fSh86dOM4y3sXImYFJ6P-yT2on9d22A8f4VfABQbVMhV4IfS4LjZyhdZq4HLdbFcLDccpaLZqZBbhRF_2EmCQ==
+
+influx delete --org neuron-org --bucket neuron-bucket --start '1970-01-01T00:00:00Z' --stop $(date +"%Y-%m-%dT%H:%M:%SZ") --predicate '_measurement="Info"' -t 2fSh86dOM4y3sXImYFJ6P-yT2on9d22A8f4VfABQbVMhV4IfS4LjZyhdZq4HLdbFcLDccpaLZqZBbhRF_2EmCQ==
+
+查询ckp：
+influx query -o neuron-org 'from(bucket: "neuron-bucket") |> range(start: -100d) |> filter(fn: (r) => r._measurement == "Checkpoint" and r.agent_id == "123456" and r.chip_id == "111") |> group(columns: ["agent_id", "chip_id", "ckp_id"])' -t 2fSh86dOM4y3sXImYFJ6P-yT2on9d22A8f4VfABQbVMhV4IfS4LjZyhdZq4HLdbFcLDccpaLZqZBbhRF_2EmCQ==
+
+influx delete --org neuron-org --bucket neuron-bucket --start '1970-01-01T00:00:00Z' --stop $(date +"%Y-%m-%dT%H:%M:%SZ") --predicate '_measurement="Checkpoint"' -t 2fSh86dOM4y3sXImYFJ6P-yT2on9d22A8f4VfABQbVMhV4IfS4LjZyhdZq4HLdbFcLDccpaLZqZBbhRF_2EmCQ==
