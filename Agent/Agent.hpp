@@ -45,7 +45,7 @@ public:
         struct sockaddr_un addr;
         addr.sun_family = AF_LOCAL;
         strcpy(addr.sun_path, agent_socket);
-        int ret = bind(lfd, (struct sockaddr *)&addr, sizeof(addr)); // 绑定会创建一个本地套接字文件serve.sock
+        int ret = bind(lfd, (struct sockaddr *)&addr, sizeof(addr)); // 绑定会创建一个本地套接字文件server.sock
         if(ret == -1) {
             perror("bind");
             exit(-1);
