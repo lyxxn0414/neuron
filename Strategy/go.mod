@@ -14,6 +14,6 @@ require (
 	golang.org/x/net v0.7.0 // indirect
 )
 
-replace gitee.com/liyue/storage => /home/liyue/neuron/monitor/storage
+replace gitee.com/liyue/storage => /root/neuron/monitor/storage
 
-replace gitee.com/liyue/Utils => /home/liyue/neuron/Utils
+replace gitee.com/liyue/Utils => /root/neuron/Utils

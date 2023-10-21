@@ -12,4 +12,4 @@ require (
 	golang.org/x/net v0.7.0 // indirect
 )
 
-replace gitee.com/liyue/strategy => /home/liyue/neuron/Strategy
+replace gitee.com/liyue/strategy => /root/neuron/Strategy

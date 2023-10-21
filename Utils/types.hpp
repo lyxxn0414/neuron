@@ -31,8 +31,8 @@ struct Checkpoint_Heartbeat{
 public:
     char id[ID_LENGTH] = "";
     char time[32] = "";
-    char heartbeatId[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH];
-    char expectedId[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH];
+    char actural_heartbeats[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH];
+    char expected_heartbeats[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH];
     char ip[IP_LENGTH] = "127.0.0.1";
     char port[PORT_LENGTH] = "8081";
 };

@@ -88,7 +88,7 @@ public:
         }
     }
     bool post_heartbeat(Checkpoint_Heartbeat* hb){
-        cout<< hb->id <<"," <<hb->time << "," <<hb->expectedId[0]<<","<<hb->expectedId[1]<<endl;
+        // cout<< hb->id <<"," <<hb->time << "," <<hb->expected_heartbeats[0]<<","<<hb->expected_heartbeats[1]<<endl;
         Checkpoint ckp;
         memcpy(ckp.data,hb,sizeof(Checkpoint_Heartbeat)); 
         ckp.type = HEART_BEAT;
@@ -280,8 +280,8 @@ public:
         char expected[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH] = {"111","222","333","444","555","000"};
         char actual[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH] = {"111","222","333","444","000"};
         memcpy(heartbeat->id,id,strlen(id)); 
-        memcpy(heartbeat->heartbeatId,actual,sizeof(actual));
-        memcpy(heartbeat->expectedId,expected,sizeof(expected));
+        memcpy(heartbeat->actural_heartbeats,actual,sizeof(actual));
+        memcpy(heartbeat->expected_heartbeats,expected,sizeof(expected));
         post_heartbeat(heartbeat);
     }
 };
