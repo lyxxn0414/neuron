@@ -39,7 +39,7 @@ public:
 
 enum Func_Name{RETURN, POST_INFO, POST_CKP, GET_CKP};
 enum Checkpoint_Type{HEART_BEAT};
-enum Rule_Type{BOARD_DEAD};
+enum Rule_Type{BOARD_LIVENESS_INTEGRITY_CHECK_FAILED};
 
 class DataPackage{
 public:

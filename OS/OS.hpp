@@ -191,7 +191,7 @@ public:
             ErrorPackage *err = (ErrorPackage *)buffer;
             switch (err->type)
             {
-            case BOARD_DEAD:{
+            case BOARD_LIVENESS_INTEGRITY_CHECK_FAILED:{
                 cout << "Err id:"<<err->id<<endl;
                 break;
             }
