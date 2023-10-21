@@ -4,6 +4,8 @@ go 1.21.1
 
 require gitee.com/liyue/storage v0.0.0
 
+require gitee.com/liyue/Utils v0.0.0
+
 require (
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3 // indirect
@@ -13,3 +15,5 @@ require (
 )
 
 replace gitee.com/liyue/storage => /home/liyue/neuron/monitor/storage
+
+replace gitee.com/liyue/Utils => /home/liyue/neuron/Utils

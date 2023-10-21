@@ -22,7 +22,7 @@ public:
     int cfd;
     int clientSocket;
     vector<Info> buffer_info;
-    vector<Checkpoint*> buffer_ckp;
+    vector<Checkpoint_My*> buffer_ckp;
     Agent(){
         connect_storage();
         connect_os();
@@ -103,9 +103,12 @@ public:
                         break;
                     }
                     case POST_CKP:{
-                        int num = len/sizeof(Checkpoint);
-                        // bool res = save_ckp(dp,num);
-                        bool res = save_ckp(buf,len);
+                        // int num = len/sizeof(Checkpoint_My);
+                        // bool res = save_ckp(buf,len);
+                        cout << "post heartbeat"<<endl;
+                        // Checkpoint ckp;
+                        // memcpy(&ckp, dp->params, sizeof(ckp)); 
+                        bool res = post_ckp(dp);
                         memcpy(ret_buf->params,&res,sizeof(res));
                         recv_len = sizeof(res)+sizeof(ret_buf->func_name)+1;
                         break;
@@ -114,7 +117,7 @@ public:
                         int num = len/ID_LENGTH;
                         cout << "The num is" << num <<endl;
                         char* res = get_ckp(dp,num);
-                        int arrlen = num*sizeof(Checkpoint);
+                        int arrlen = num*sizeof(Checkpoint_My);
                         memcpy(ret_buf->params,res,arrlen);
                         recv_len = arrlen+sizeof(ret_buf->func_name)+1;
                         break;
@@ -171,16 +174,16 @@ public:
         }
     }
     bool save_ckp_test(DataPackage *dp, int num){
-        char temp[num][sizeof(Checkpoint)];
-        memcpy(temp, dp->params, num*sizeof(Checkpoint));
+        char temp[num][sizeof(Checkpoint_My)];
+        memcpy(temp, dp->params, num*sizeof(Checkpoint_My));
         for(int i = 0;i<num;i++){
-            Checkpoint *ckp = (Checkpoint*) temp[i];
+            Checkpoint_My *ckp = (Checkpoint_My*) temp[i];
             cout << "The ckp is:" << "{ " << "time:" << ckp->time << ",id:" << ckp->id << ",hw_info:" << ckp->other_info  <<endl;
             buffer_ckp.push_back(ckp);
         }
 
         // 发送数据
-        if (send(clientSocket, (const char*)dp, num*sizeof(Checkpoint)+sizeof(dp->func_name)+1, 0) == -1) {
+        if (send(clientSocket, (const char*)dp, num*sizeof(Checkpoint_My)+sizeof(dp->func_name)+1, 0) == -1) {
             std::cerr << "发送数据失败" << std::endl;
         }
 
@@ -194,6 +197,37 @@ public:
         bool *res = (bool *) buffer;
         printf("save_ckp res: %d\n",*res);
         return *res;
+    }
+    bool post_ckp(DataPackage *dp){
+        // 发送数据
+            if (send(clientSocket, (const char*)dp, PACKAGE_SIZE, 0) == -1) {
+                std::cerr << "发送数据失败" << std::endl;
+            }
+
+            // 接收服务器响应
+            char buffer[1024];
+            int len = recv(clientSocket, buffer, sizeof(buffer), 0);
+            if (len == -1) {
+                std::cerr << "接收服务器响应失败" << std::endl;
+            }
+            DataPackage *dp2 = (DataPackage *)buffer;
+            bool *res = (bool *) dp2->params;
+            printf("upload_ckp res: %d\n",*res);
+            return *res;
+        // switch (ckp.type)
+        // {
+        //     case HEART_BEAT:{
+        //     Checkpoint_Heartbeat *heartbeat = (Checkpoint_Heartbeat*)ckp.data;
+        //     cout << heartbeat->id<<","<<heartbeat->time<<","<<heartbeat->expectedId[0]  <<endl;
+        //     break;
+        //     }
+        
+        //     default:{
+        //     cout<<"Type Err"<<endl;
+        //     break;
+        //     }
+        // }
+        // return true;
     }
     bool save_ckp(char buf[], int num){
         // 发送数据
@@ -238,15 +272,15 @@ public:
         }
         // printf("recv2 %d\n",len);
 
-        int num2 = len/sizeof(Checkpoint);
+        int num2 = len/sizeof(Checkpoint_My);
         cout<< num2 << endl;
-        Checkpoint temp2[num2];
-        memcpy(temp2, buffer, num2*sizeof(Checkpoint));
+        Checkpoint_My temp2[num2];
+        memcpy(temp2, buffer, num2*sizeof(Checkpoint_My));
         for(int i = 0;i<num2;i++){
             cout << "The CKP id:" << temp2[i].ckp_id <<"info:" <<temp2[i].other_info << "time:" << *(uint32_t*)(temp2[i].time)<<endl;
         }
-        char* res = new char[num2*sizeof(Checkpoint)];
-        memcpy(res, buffer, num2*sizeof(Checkpoint));
+        char* res = new char[num2*sizeof(Checkpoint_My)];
+        memcpy(res, buffer, num2*sizeof(Checkpoint_My));
         return res;
     }
     int connect_storage(){

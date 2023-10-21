@@ -7,6 +7,7 @@ import (
 	"net"
 	"unsafe"
 	"strconv"
+	strategy "gitee.com/liyue/strategy"
 )
 
 func Connect_socket(){
@@ -70,24 +71,25 @@ func handleConnection(conn net.Conn) {
 	copy((*[unsafe.Sizeof(temp)]byte)(ptr)[:], buffer)
 
 	var ret []byte
-	fmt.Println("func_name",binary.LittleEndian.Uint16(temp.func_name[:]))
-	switch binary.LittleEndian.Uint16(temp.func_name[:]){
+	fmt.Println("func_name",binary.LittleEndian.Uint16(temp.Func_name[:]))
+	switch binary.LittleEndian.Uint16(temp.Func_name[:]){
 		// POST_INFO
 		case 1: 
 		    fmt.Println("Save info...");
 			var num int = len/int(unsafe.Sizeof(Info{}))
-			ret = save_info(temp.params[:],num);
+			ret = save_info(temp.Params[:],num);
 			break;
 		// POST_CKP
 		case 2:
-			fmt.Println("Save ckp...");
-			var num int = len/int(unsafe.Sizeof(Checkpoint{}))
-			ret = save_ckp(temp.params[:],num);
+			// fmt.Println("Save ckp...");
+			// var num int = len/int(unsafe.Sizeof(Checkpoint{}))
+			// ret = save_ckp(temp.Params[:],num);
+			ret = post_ckp(temp.Params[:]);
 			break;
 		// GET_CKP
 		case 3: 
 		    var num int = (len-ID_LENGTH)/CKP_ID_LENGTH
-			ret = get_ckp(temp.params[:],num);
+			ret = get_ckp(temp.Params[:],num);
 			break;
 	}
 	// 发送响应给客户端
@@ -144,25 +146,84 @@ func save_info(b []byte,num int)(v []byte){
 	return v;
 }
 
-func save_ckp(b []byte, num int)(v []byte){
-	fmt.Println("Save ckp...");
-	ckps := make([]Checkpoint,num)
-	for i := 0; i < num; i++ {
-		// 创建一个与结构体具有相同内存布局的临时结构体
-		var temp Checkpoint
+// func save_ckp(b []byte, num int)(v []byte){
+// 	fmt.Println("Save ckp...");
+// 	ckps := make([]Checkpoint,num)
+// 	for i := 0; i < num; i++ {
+// 		// 创建一个与结构体具有相同内存布局的临时结构体
+// 		var temp Checkpoint
 
-		// 使用unsafe.Pointer将[]byte的指针转换为结构体的指针
-		ptr := unsafe.Pointer(&temp)
+// 		// 使用unsafe.Pointer将[]byte的指针转换为结构体的指针
+// 		ptr := unsafe.Pointer(&temp)
 	
-		// 将字节数组复制到结构体指针中
-		copy((*[unsafe.Sizeof(temp)]byte)(ptr)[:], b[i*int(unsafe.Sizeof(Checkpoint{})):i*int(unsafe.Sizeof(Checkpoint{}))+int(unsafe.Sizeof(Checkpoint{}))])
-		fmt.Println("Time is:",string(temp.Time[:]));
-		ckps[i]=temp
+// 		// 将字节数组复制到结构体指针中
+// 		copy((*[unsafe.Sizeof(temp)]byte)(ptr)[:], b[i*int(unsafe.Sizeof(Checkpoint{})):i*int(unsafe.Sizeof(Checkpoint{}))+int(unsafe.Sizeof(Checkpoint{}))])
+// 		fmt.Println("Time is:",string(temp.Time[:]));
+// 		ckps[i]=temp
+// 	}
+// 	writeCkp(ckps,num)
+// 	res := true
+// 	v = append(v,byte(strconv.FormatBool(res)[0]))
+// 	return v;
+// }
+
+func post_ckp(b []byte)(v []byte){
+	fmt.Println("Post ckp...");
+	//解析checkpoint
+	var temp Ckp;
+	ptr := unsafe.Pointer(&temp)
+	copy((*[unsafe.Sizeof(temp)]byte)(ptr)[:], b[:])
+	switch binary.LittleEndian.Uint16(temp.Type[:]){
+	//heartbeat
+	case 0:
+		var hb Checkpoint_Heartbeat;
+		p := unsafe.Pointer(&hb)
+		copy((*[unsafe.Sizeof(hb)]byte)(p)[:], temp.Data[:])
+		check_heartbeat(hb)
+		break;
 	}
-	writeCkp(ckps,num)
 	res := true
 	v = append(v,byte(strconv.FormatBool(res)[0]))
 	return v;
+}
+
+func check_heartbeat(hb Checkpoint_Heartbeat)(){
+	var ids []string
+	var expected []string
+	str := GetString(hb.HeartbeatId[0][:])
+	i:=0
+	for str!=END_ID && i<MAX_HEARBEAT_LENGTH {
+		ids = append(ids,str)
+		str = GetString(hb.HeartbeatId[i][:])
+		i++
+	}
+	str = GetString(hb.ExpectedId[0][:])
+	i=0
+	for str!=END_ID && i<MAX_HEARBEAT_LENGTH{
+		expected = append(expected,str)
+		str = GetString(hb.ExpectedId[i][:])
+		i++
+	}
+	isSame := true
+	var err_ckp []string
+	// 创建一个 map 来存储 ids 数组中的元素
+	idsMap := make(map[string]bool)
+	for _, id := range ids {
+		idsMap[id] = true
+	}
+
+	// 比较 expected 数组中的元素是否在 idsMap 中存在
+	for _, id := range expected {
+		if _, ok := idsMap[id]; !ok {
+			fmt.Println("Err_id:",id)
+			err_ckp = append(err_ckp,id)
+			isSame = false
+		}
+	}
+	if !isSame{
+		fmt.Println("Err dead board.")
+		strategy.HandleDead(GetString(hb.IP[:]),GetString(hb.Port[:]),GetString(hb.Id[:]))
+	}
 }
 
 func my_get(b []byte, num int)([]byte){

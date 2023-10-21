@@ -6,6 +6,7 @@ const (
 	CKP_ID_LENGTH = 16
 	CKP_LENGTH = 64
 	FUNC_LENGTH = 4
+	CHECKPOINT_TYPE_LENGTH = 4
 	OTHER_INFO_LENGTH = 128
 	//查询硬件状态的周期，单位：s
 	QUERY_INFO_PERIOD = 5
@@ -14,6 +15,11 @@ const (
 	INFO_LENGTH = 5
 	IP_LENGTH = 16
 	PORT_LENGTH = 8
+	MAX_HEARBEAT_LENGTH = 16
+	HEARTBEAT_ID_LENGTH = 16
+	CKP_DATA_SIZE = 1024
+	END_ID = "000"
+	PACKAGE_SIZE = 1024
 )
 
 type Info struct {
@@ -47,9 +53,23 @@ const (
 	DEAD Error_Code = iota
 )
 
+type Checkpoint_Heartbeat struct {
+    Id          [ID_LENGTH]byte
+    Time        [32]byte
+    HeartbeatId [MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH]byte
+    ExpectedId  [MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH]byte
+	IP		[IP_LENGTH]byte
+	Port    [PORT_LENGTH]byte
+}
+
 type DataPackage struct {
-	func_name [FUNC_LENGTH]byte
-	params    [1024]byte
+    Func_name [FUNC_LENGTH]byte
+    Params    [PACKAGE_SIZE]byte
+}
+
+type Ckp struct {
+    Type [CHECKPOINT_TYPE_LENGTH]byte
+    Data [CKP_DATA_SIZE]byte
 }
 
 type Board_Info struct {

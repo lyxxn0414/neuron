@@ -43,13 +43,13 @@ public:
             printf("%d\n",*res);
         }
     }
-    bool post_ckp(Checkpoint ckp[], int num){
+    bool post_ckp(Checkpoint_My ckp[], int num){
         DataPackage *dp = new DataPackage();
         dp->func_name = POST_CKP;
         for(int i=0;i<num;i++){
-            memcpy(dp->params+i*sizeof(Checkpoint)/sizeof(char), &ckp[i],sizeof(Checkpoint));
+            memcpy(dp->params+i*sizeof(Checkpoint_My)/sizeof(char), &ckp[i],sizeof(Checkpoint_My));
         }
-        send(cfd, (const char*)dp, num*sizeof(Checkpoint)+sizeof(dp->func_name)+1, 0);
+        send(cfd, (const char*)dp, num*sizeof(Checkpoint_My)+sizeof(dp->func_name)+1, 0);
         char b[1024];
         int len = recv(cfd, b, sizeof(b), 0);
         if(len == -1) {
@@ -79,12 +79,35 @@ public:
             printf("server closed....\n");
         } else if(len > 0) {
             DataPackage *dp = (DataPackage *)buf;
-            int num2 = len / sizeof(Checkpoint);
-            Checkpoint temp2[num2];
-            memcpy(temp2, dp->params, num2*sizeof(Checkpoint));
+            int num2 = len / sizeof(Checkpoint_My);
+            Checkpoint_My temp2[num2];
+            memcpy(temp2, dp->params, num2*sizeof(Checkpoint_My));
             for(int i = 0;i<num2;i++){
                 cout << "The CKP id:" << temp2[i].id <<"info:" <<temp2[i].other_info << "time:" << *(uint32_t*)(temp2[i].time)<<endl;
             }
+        }
+    }
+    bool post_heartbeat(Checkpoint_Heartbeat* hb){
+        cout<< hb->id <<"," <<hb->time << "," <<hb->expectedId[0]<<","<<hb->expectedId[1]<<endl;
+        Checkpoint ckp;
+        memcpy(ckp.data,hb,sizeof(Checkpoint_Heartbeat)); 
+        ckp.type = HEART_BEAT;
+        char buf[PACKAGE_SIZE];
+        DataPackage *dp = new DataPackage();
+        dp->func_name = POST_CKP;
+        memcpy(dp->params, &ckp, sizeof(Checkpoint_Heartbeat)+sizeof(Checkpoint_Type));
+        send(cfd, (const char*)dp, sizeof(Checkpoint_Heartbeat)+sizeof(Checkpoint_Type), 0);
+        char b[1024];
+        int len = recv(cfd, b, sizeof(b), 0);
+        if(len == -1) {
+            perror("recv");
+            exit(-1);
+        } else if(len == 0) {
+            printf("server closed....\n");
+        } else if(len > 0) {
+            DataPackage *ret = (DataPackage *)b;
+            bool *res = (bool *) ret->params;
+            printf("%d\n",*res);
         }
     }
     //建立和Agent套接字连接
@@ -157,12 +180,24 @@ public:
                 std::cerr << "接收消息失败" << std::endl;
             }
 
-            int num2 = len / sizeof(Checkpoint);
-            Checkpoint temp2[num2];
-            memcpy(temp2, buffer, num2*sizeof(Checkpoint));
+            // int num2 = len / sizeof(Checkpoint_My);
+            // Checkpoint_My temp2[num2];
+            // memcpy(temp2, buffer, num2*sizeof(Checkpoint_My));
+            // cout<< "recv:" << len <<endl;
+            // for(int i = 0;i<num2;i++){
+            //     cout << i<<":"<<"The CKP id:" << temp2[i].ckp_id <<"info:" <<temp2[i].other_info << "time:" << *(uint32_t*)(temp2[i].time)<<endl;
+            // }
             cout<< "recv:" << len <<endl;
-            for(int i = 0;i<num2;i++){
-                cout << i<<":"<<"The CKP id:" << temp2[i].ckp_id <<"info:" <<temp2[i].other_info << "time:" << *(uint32_t*)(temp2[i].time)<<endl;
+            ErrorPackage *err = (ErrorPackage *)buffer;
+            switch (err->type)
+            {
+            case BOARD_DEAD:{
+                cout << "Err id:"<<err->id<<endl;
+                break;
+            }
+            
+            default:
+                break;
             }
 
             // 关闭客户端socket
@@ -188,7 +223,7 @@ public:
     }
 
     void test_post_ckp(){
-    Checkpoint ckp;
+    Checkpoint_My ckp;
     // 基于当前系统的当前日期/时间
     time_t now = time(0);
     const char* temp_char = std::to_string(now).c_str();
@@ -200,7 +235,7 @@ public:
     memcpy(ckp.agent_id,local_id,strlen(local_id));
     memcpy(ckp.ckp_id,ckp_id,strlen(ckp_id));
     memcpy(ckp.other_info,other_info,strlen(other_info));
-    Checkpoint ckp2;
+    Checkpoint_My ckp2;
     char* id2 = "111";
     char* ckp_id2 = "888";
     char* other_info2 = "This is info.";
@@ -209,7 +244,7 @@ public:
     memcpy(ckp2.agent_id,local_id,strlen(local_id));
     memcpy(ckp2.ckp_id,ckp_id2,strlen(ckp_id2));
     memcpy(ckp2.other_info,other_info2,strlen(other_info2));
-    Checkpoint arr[2] = {ckp,ckp2};
+    Checkpoint_My arr[2] = {ckp,ckp2};
     post_ckp(arr,2);
 }
 
@@ -235,7 +270,18 @@ public:
         }
     }
 
-    void test_2(){
-        test_post_ckp();      
+    void test_post_heartbeat(){
+        Checkpoint_Heartbeat *heartbeat = new Checkpoint_Heartbeat();
+        // 基于当前系统的当前日期/时间
+        time_t now = time(0);
+        const char* temp_char = std::to_string(now).c_str();
+        memcpy(heartbeat->time,temp_char,strlen(temp_char));
+        char* id = "123456";
+        char expected[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH] = {"111","222","333","444","555","000"};
+        char actual[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH] = {"111","222","333","444","000"};
+        memcpy(heartbeat->id,id,strlen(id)); 
+        memcpy(heartbeat->heartbeatId,actual,sizeof(actual));
+        memcpy(heartbeat->expectedId,expected,sizeof(expected));
+        post_heartbeat(heartbeat);
     }
 };

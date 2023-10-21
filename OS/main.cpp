@@ -31,7 +31,7 @@ void test_post_info(OS *os, char* id){
 }
 
 void test_post_ckp(OS *os){
-    Checkpoint ckp;
+    Checkpoint_My ckp;
     // 基于当前系统的当前日期/时间
     time_t now = time(0);
    const char* temp_char = std::to_string(now).c_str();
@@ -43,7 +43,7 @@ void test_post_ckp(OS *os){
     memcpy(ckp.agent_id,local_id,strlen(local_id));
     memcpy(ckp.ckp_id,ckp_id,strlen(ckp_id));
     memcpy(ckp.other_info,other_info,strlen(other_info));
-    Checkpoint ckp2;
+    Checkpoint_My ckp2;
     char* id2 = "123456";
     char* ckp_id2 = "123";
     char* other_info2 = "This is info.";
@@ -52,7 +52,7 @@ void test_post_ckp(OS *os){
     memcpy(ckp2.agent_id,local_id,strlen(local_id));
     memcpy(ckp2.ckp_id,ckp_id2,strlen(ckp_id2));
     memcpy(ckp2.other_info,other_info2,strlen(other_info2));
-    Checkpoint arr[2] = {ckp,ckp2};
+    Checkpoint_My arr[2] = {ckp,ckp2};
     os->post_ckp(arr,2);
 }
 
@@ -77,7 +77,7 @@ void test_1(OS *os){
 int main() {
     OS *os = new OS();
     std::thread t1(&OS::listen_for_error, os); 
-    std::thread t2(&OS::test_1, os); 
+    std::thread t2(&OS::test_post_heartbeat, os); 
     t1.join();
     t2.join();
     // char* id1 = "111";
