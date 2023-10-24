@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <sys/un.h>
+#include <string.h>
 #include <thread>
 
 #include "../Utils/types.hpp"
@@ -192,7 +193,11 @@ public:
             switch (err->type)
             {
             case BOARD_LIVENESS_INTEGRITY_CHECK_FAILED:{
-                cout << "Err id:"<<err->id<<endl;
+                int i = 0;
+                while(strcmp(err->diff_heartbeats[i],end_id)){
+                    cout << "Err id:"<<err->diff_heartbeats[i]<<endl;
+                    i++;
+                }
                 break;
             }
             
@@ -278,7 +283,7 @@ public:
         memcpy(heartbeat->time,temp_char,strlen(temp_char));
         char* id = "123456";
         char expected[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH] = {"111","222","333","444","555","000"};
-        char actual[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH] = {"111","222","333","444","000"};
+        char actual[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH] = {"111","333","444","000"};
         memcpy(heartbeat->id,id,strlen(id)); 
         memcpy(heartbeat->actural_heartbeats,actual,sizeof(actual));
         memcpy(heartbeat->expected_heartbeats,expected,sizeof(expected));

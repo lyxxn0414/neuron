@@ -8,6 +8,7 @@ import (
 	"unsafe"
 	"strconv"
 	strategy "gitee.com/liyue/strategy"
+	Utils "gitee.com/liyue/Utils"  // 使用自定义包
 )
 
 func Connect_socket(){
@@ -62,7 +63,7 @@ func handleConnection(conn net.Conn) {
 	fmt.Println("len:",len,",recv:", string(buffer[:len]))
 
 	// 创建一个与结构体具有相同内存布局的临时结构体
-	var temp DataPackage
+	var temp Utils.DataPackage
 
 	// 使用unsafe.Pointer将[]byte的指针转换为结构体的指针
 	ptr := unsafe.Pointer(&temp)
@@ -76,7 +77,7 @@ func handleConnection(conn net.Conn) {
 		// POST_INFO
 		case 1: 
 		    fmt.Println("Save info...");
-			var num int = len/int(unsafe.Sizeof(Info{}))
+			var num int = len/int(unsafe.Sizeof(Utils.Info{}))
 			ret = save_info(temp.Params[:],num);
 			break;
 		// POST_CKP
@@ -88,7 +89,7 @@ func handleConnection(conn net.Conn) {
 			break;
 		// GET_CKP
 		case 3: 
-		    var num int = (len-ID_LENGTH)/CKP_ID_LENGTH
+		    var num int = (len-Utils.ID_LENGTH)/Utils.CKP_ID_LENGTH
 			ret = get_ckp(temp.Params[:],num);
 			break;
 	}
@@ -104,11 +105,11 @@ func handleConnection(conn net.Conn) {
 
 func get_ckp(b []byte, num int)(v []byte){
 	var ids []string
-	chip_id := GetString(b[:ID_LENGTH])
+	chip_id := GetString(b[:Utils.ID_LENGTH])
 	// fmt.Println("The num is:", num)
 	// fmt.Println("The chip_id is:", chip_id)
 	for i := 0; i < num; i++ {
-		str := GetString(b[ID_LENGTH+i*CKP_ID_LENGTH:ID_LENGTH+i*CKP_ID_LENGTH+CKP_ID_LENGTH])
+		str := GetString(b[Utils.ID_LENGTH+i*Utils.CKP_ID_LENGTH:Utils.ID_LENGTH+i*Utils.CKP_ID_LENGTH+Utils.CKP_ID_LENGTH])
 		// fmt.Println("The ID length is:",len(str))
 		ids = append(ids,str)
 	}
@@ -127,16 +128,16 @@ func get_ckp(b []byte, num int)(v []byte){
 func save_info(b []byte,num int)(v []byte){
 	// fmt.Println("Save info...");
 	fmt.Println(num);
-	infos := make([]Info, num)
+	infos := make([]Utils.Info, num)
 	for i := 0; i < num; i++ {
 		// 创建一个与结构体具有相同内存布局的临时结构体
-		var temp Info
+		var temp Utils.Info
 
 		// 使用unsafe.Pointer将[]byte的指针转换为结构体的指针
 		ptr := unsafe.Pointer(&temp)
 	
 		// 将字节数组复制到结构体指针中
-		copy((*[unsafe.Sizeof(temp)]byte)(ptr)[:], b[i*int(unsafe.Sizeof(Info{})):i*int(unsafe.Sizeof(Info{}))+int(unsafe.Sizeof(Info{}))])
+		copy((*[unsafe.Sizeof(temp)]byte)(ptr)[:], b[i*int(unsafe.Sizeof(Utils.Info{})):i*int(unsafe.Sizeof(Utils.Info{}))+int(unsafe.Sizeof(Utils.Info{}))])
 		// fmt.Println("Time is:",string(temp.time[:]));
 		infos[i] = temp
 	}
@@ -170,13 +171,13 @@ func save_info(b []byte,num int)(v []byte){
 func post_ckp(b []byte)(v []byte){
 	fmt.Println("Post ckp...");
 	//解析checkpoint
-	var temp Ckp;
+	var temp Utils.Ckp;
 	ptr := unsafe.Pointer(&temp)
 	copy((*[unsafe.Sizeof(temp)]byte)(ptr)[:], b[:])
 	switch binary.LittleEndian.Uint16(temp.Type[:]){
 	//heartbeat
 	case 0:
-		var hb Checkpoint_Heartbeat;
+		var hb Utils.Checkpoint_Heartbeat;
 		p := unsafe.Pointer(&hb)
 		copy((*[unsafe.Sizeof(hb)]byte)(p)[:], temp.Data[:])
 		check_heartbeat(hb)
@@ -187,19 +188,19 @@ func post_ckp(b []byte)(v []byte){
 	return v;
 }
 
-func check_heartbeat(hb Checkpoint_Heartbeat)(){
+func check_heartbeat(hb Utils.Checkpoint_Heartbeat)(){
 	var ids []string
 	var expected []string
 	str := GetString(hb.HeartbeatId[0][:])
 	i:=0
-	for str!=END_ID && i<MAX_HEARBEAT_LENGTH {
+	for str!=Utils.END_ID && i<Utils.MAX_HEARBEAT_LENGTH {
 		ids = append(ids,str)
 		str = GetString(hb.HeartbeatId[i][:])
 		i++
 	}
 	str = GetString(hb.ExpectedId[0][:])
 	i=0
-	for str!=END_ID && i<MAX_HEARBEAT_LENGTH{
+	for str!=Utils.END_ID && i<Utils.MAX_HEARBEAT_LENGTH{
 		expected = append(expected,str)
 		str = GetString(hb.ExpectedId[i][:])
 		i++
@@ -222,7 +223,7 @@ func check_heartbeat(hb Checkpoint_Heartbeat)(){
 	}
 	if !isSame{
 		fmt.Println("Err dead board.")
-		strategy.HandleDead(GetString(hb.IP[:]),GetString(hb.Port[:]),GetString(hb.Id[:]))
+		strategy.HandleDead(GetString(hb.IP[:]),GetString(hb.Port[:]),err_ckp)
 	}
 }
 

@@ -69,7 +69,7 @@ type DataPackage struct {
 
 type ErrorPackage struct{
 	Type [FUNC_LENGTH]byte;
-    Id [ID_LENGTH]byte;
+    Diff_Heartbeats [MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH]byte
 }
 
 type Ckp struct {

@@ -41,7 +41,7 @@ func Handlefault(id [2]string, ctx Utils.Error_Context)(bool){
 	return true;
 }
 
-func HandleDead(ip string, port string, id string)(bool){
+func HandleDead(ip string, port string, ids []string)(bool){
 	// 连接到C++服务器
 	fmt.Println(ip+":"+port)
 	conn, err := net.Dial("tcp", ip+":"+port)
@@ -70,7 +70,10 @@ func HandleDead(ip string, port string, id string)(bool){
 	// v = append(v,byteArray[:]...)
 	var temp Utils.ErrorPackage
 	binary.LittleEndian.PutUint16(temp.Type[:], uint16(0))
-	copy(temp.Id[:], []byte(id))
+	for i, id := range ids {
+		copy(temp.Diff_Heartbeats[i][:], []byte(id))
+	}
+	copy(temp.Diff_Heartbeats[len(ids)][:], []byte(Utils.END_ID))
 	var v []byte
 	buf := &bytes.Buffer{}
 	err = binary.Write(buf, binary.LittleEndian, temp)

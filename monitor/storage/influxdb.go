@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"encoding/binary"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	Utils "gitee.com/liyue/Utils"  // 使用自定义包
 )
 
 var client influxdb2.Client
@@ -62,7 +63,7 @@ func writePonits() {
 
 }
 
-func writeInfo(infos []Info, num int){
+func writeInfo(infos []Utils.Info, num int){
 	// Get non-blocking write client
 	writeAPI := client.WriteAPI(org, bucket)
 
@@ -87,7 +88,7 @@ func writeInfo(infos []Info, num int){
 		writeAPI.Flush()
 }
 
-func GetInfo(second int, ids []string)(infos []Info){
+func GetInfo(second int, ids []string)(infos []Utils.Info){
 	queryAPI := client.QueryAPI(org)
 	for _, id := range ids{
 		result, err := queryAPI.Query(context.Background(),
@@ -96,7 +97,7 @@ func GetInfo(second int, ids []string)(infos []Info){
 		|> filter(fn: (r) =>
 	  	r._measurement == "Info"  and
 		r.id == "%v")`, bucket, second, id))
-		var temp Info
+		var temp Utils.Info
 		copy(temp.Id[:], []byte(id))
 		if err == nil {
 		// Iterate over query response
@@ -120,7 +121,7 @@ func GetInfo(second int, ids []string)(infos []Info){
 	return infos
 }
 
-func GetInfoById(agent_id string, id string)(infos []Info){
+func GetInfoById(agent_id string, id string)(infos []Utils.Info){
 	queryAPI := client.QueryAPI(org)
 	result, err := queryAPI.Query(context.Background(),
 		fmt.Sprintf(`from(bucket: "%v")
@@ -128,11 +129,11 @@ func GetInfoById(agent_id string, id string)(infos []Info){
 		|> filter(fn: (r) =>
 	  	r._measurement == "Info" and
 		r.agent_id == "%v" and
-		r.id == "%v")`, bucket, DEAD_PERIOD, agent_id, id))
+		r.id == "%v")`, bucket, Utils.DEAD_PERIOD, agent_id, id))
 		if err == nil {
 		// Iterate over query response
 			for result.Next() {
-				var temp Info
+				var temp Utils.Info
 				copy(temp.Agent_id[:], []byte(agent_id))
 				copy(temp.Id[:], []byte(id))
 				// fmt.Printf("field:%v value: %v time:%s\n", result.Record().Field(), result.Record().Value(), result.Record().Time())
@@ -154,7 +155,7 @@ func GetInfoById(agent_id string, id string)(infos []Info){
 		return infos
 }
 
-func getCkp(chip_id string, ids []string, num int)(ckps []Checkpoint){
+func getCkp(chip_id string, ids []string, num int)(ckps []Utils.Checkpoint){
 	// Get query client
 	queryAPI := client.QueryAPI(org)
 	fmt.Println("The chip_id:", chip_id)
@@ -174,7 +175,7 @@ func getCkp(chip_id string, ids []string, num int)(ckps []Checkpoint){
 		// r.ckp_id == %v)`, bucket, ids[i]))
 
 		if err == nil {
-			var temp Checkpoint
+			var temp Utils.Checkpoint
 			copy(temp.Ckp_id[:], []byte(ids[i]))
 			copy(temp.Id[:], []byte(chip_id))
 		// Iterate over query response
@@ -200,7 +201,7 @@ func getCkp(chip_id string, ids []string, num int)(ckps []Checkpoint){
 	// Get QueryTableResult
 }
 
-func GetCkpByID(agent_id string, chip_id string)(ckps []Checkpoint){
+func GetCkpByID(agent_id string, chip_id string)(ckps []Utils.Checkpoint){
 	queryAPI := client.QueryAPI(org)
 	// 构建查询语句
 	fmt.Println("Agent_id:",agent_id,"Chip_id:",chip_id)
@@ -216,7 +217,7 @@ func GetCkpByID(agent_id string, chip_id string)(ckps []Checkpoint){
 			ckp_id := record.ValueByKey("ckp_id").(string)
 			fmt.Printf("ckp_id: %v\n", ckp_id)
 			// Access data
-			var temp Checkpoint
+			var temp Utils.Checkpoint
 			copy(temp.Ckp_id[:], []byte(ckp_id))
 			copy(temp.Id[:], []byte(chip_id))
 			copy(temp.Agent_id[:], []byte(agent_id))
@@ -228,7 +229,7 @@ func GetCkpByID(agent_id string, chip_id string)(ckps []Checkpoint){
 	return ckps;
 }
 
-func writeCkp(ckps []Checkpoint, num int){
+func writeCkp(ckps []Utils.Checkpoint, num int){
 	// Get non-blocking write client
 	writeAPI := client.WriteAPI(org, bucket)
 
@@ -261,7 +262,7 @@ func GetString(b []byte)(s string){
 	return string(b[:i])
 }
 
-func GetState()(bi []Board_Info){
+func GetState()(bi []Utils.Board_Info){
 	// 创建查询API
 	queryAPI := client.QueryAPI(org)
 
@@ -282,7 +283,7 @@ func GetState()(bi []Board_Info){
 	}
 
 	// 处理查询结果
-	var res []Board_Info
+	var res []Utils.Board_Info
 	for result.Next() {
 		record := result.Record()
 		agentID := record.ValueByKey("agent_id").(string)
@@ -290,7 +291,7 @@ func GetState()(bi []Board_Info){
 		ip := record.ValueByKey("ip").(string)
 		port := record.ValueByKey("port").(string)
 
-		var temp Board_Info
+		var temp Utils.Board_Info
 		temp.Agent_id = agentID
 		temp.Id = id
 		temp.Infos = GetInfoById(agentID, id)

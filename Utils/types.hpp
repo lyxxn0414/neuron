@@ -64,7 +64,7 @@ public:
 
 struct ErrorPackage{
     Rule_Type type;
-    char id[ID_LENGTH];
+    char diff_heartbeats[MAX_HEARBEAT_LENGTH][HEARTBEAT_ID_LENGTH];
 };
 const char* os_socket = "client.sock";
 const char* agent_socket = "../Agent/server.sock";
