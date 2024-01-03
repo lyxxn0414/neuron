@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string.h>
 
-#define ID_LENGTH 16
+#define ID_LENGTH 32
 #define AGENT_ID_LENGTH 16
 #define CKP_ID_LENGTH 16
 //多久发送一次监控信息给监控存储。单位：s
@@ -12,10 +12,10 @@
 //本地IP
 #define IP_LENGTH 16
 #define PORT_LENGTH 8
-#define HEARTBEAT_ID_LENGTH 16
+#define HEARTBEAT_ID_LENGTH 32
 #define MAX_HEARBEAT_LENGTH 16
-#define PACKAGE_SIZE 1024
-#define CKP_DATA_SIZE 1024
+#define PACKAGE_SIZE 4096
+#define CKP_DATA_SIZE 2048
 
 struct Info{
 public:
@@ -44,7 +44,7 @@ enum Rule_Type{BOARD_LIVENESS_INTEGRITY_CHECK_FAILED};
 class DataPackage{
 public:
     Func_Name func_name;
-    char params[1024];
+    char params[PACKAGE_SIZE];
 };
 
 struct Checkpoint{

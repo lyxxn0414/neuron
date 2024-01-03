@@ -79,8 +79,8 @@ public:
     void handle_request(){
         while(1) {
             DataPackage *ret_buf = new DataPackage();
-            char buf[1024];
-            char recv_buf[1024];
+            char buf[PACKAGE_SIZE];
+            char recv_buf[PACKAGE_SIZE];
             int recv_len = -1;
             int len = recv(cfd, buf, sizeof(buf), 0);
 
@@ -155,7 +155,7 @@ public:
             }
 
             // 接收服务器响应
-            char buffer[1024];
+            char buffer[PACKAGE_SIZE];
             int len = recv(clientSocket, buffer, sizeof(buffer), 0);
             if (len == -1) {
                 std::cerr << "接收服务器响应失败" << std::endl;
@@ -188,7 +188,7 @@ public:
         }
 
         // 接收服务器响应
-        char buffer[1024];
+        char buffer[PACKAGE_SIZE];
         int len = recv(clientSocket, buffer, sizeof(buffer), 0);
         if (len == -1) {
             std::cerr << "接收服务器响应失败" << std::endl;
@@ -205,7 +205,7 @@ public:
             }
 
             // 接收服务器响应
-            char buffer[1024];
+            char buffer[PACKAGE_SIZE];
             int len = recv(clientSocket, buffer, sizeof(buffer), 0);
             if (len == -1) {
                 std::cerr << "接收服务器响应失败" << std::endl;
@@ -236,7 +236,7 @@ public:
         }
 
         // 接收服务器响应
-        char buffer[1024];
+        char buffer[PACKAGE_SIZE];
         int len = recv(clientSocket, buffer, sizeof(buffer), 0);
         if (len == -1) {
             std::cerr << "接收服务器响应失败" << std::endl;
@@ -265,7 +265,7 @@ public:
         }
 
         // 接收服务器响应
-        char buffer[1024];
+        char buffer[PACKAGE_SIZE];
         int len = recv(clientSocket, buffer, sizeof(buffer), 0);
         if (len == -1) {
             std::cerr << "接收服务器响应失败" << std::endl;

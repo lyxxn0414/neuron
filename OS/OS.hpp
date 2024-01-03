@@ -25,13 +25,13 @@ public:
         close(cfd);
     }
     bool post_info(Info info){
-        char buf[1024];
+        char buf[PACKAGE_SIZE];
         memcpy(buf,&info,sizeof(info));  
         DataPackage *dp = new DataPackage();
         dp->func_name = POST_INFO;
         memcpy(dp->params, buf, sizeof(info));
         send(cfd, (const char*)dp, sizeof(info)+sizeof(dp->func_name)+1, 0);
-        char b[1024];
+        char b[PACKAGE_SIZE];
         int len = recv(cfd, b, sizeof(b), 0);
         if(len == -1) {
             perror("recv");
@@ -51,7 +51,7 @@ public:
             memcpy(dp->params+i*sizeof(Checkpoint_My)/sizeof(char), &ckp[i],sizeof(Checkpoint_My));
         }
         send(cfd, (const char*)dp, num*sizeof(Checkpoint_My)+sizeof(dp->func_name)+1, 0);
-        char b[1024];
+        char b[PACKAGE_SIZE];
         int len = recv(cfd, b, sizeof(b), 0);
         if(len == -1) {
             perror("recv");
@@ -71,7 +71,7 @@ public:
             memcpy(dp->params+i*CKP_ID_LENGTH, id[i],CKP_ID_LENGTH);
         }
         send(cfd, (const char*)dp, num*CKP_ID_LENGTH+sizeof(dp->func_name)+1, 0);
-        char buf[1024];
+        char buf[PACKAGE_SIZE];
         int len = recv(cfd, buf, sizeof(buf), 0);
         if(len == -1) {
             perror("recv");
@@ -98,7 +98,7 @@ public:
         dp->func_name = POST_CKP;
         memcpy(dp->params, &ckp, sizeof(Checkpoint_Heartbeat)+sizeof(Checkpoint_Type));
         send(cfd, (const char*)dp, sizeof(Checkpoint_Heartbeat)+sizeof(Checkpoint_Type), 0);
-        char b[1024];
+        char b[PACKAGE_SIZE];
         int len = recv(cfd, b, sizeof(b), 0);
         if(len == -1) {
             perror("recv");
@@ -174,7 +174,7 @@ public:
             }
 
             // 接收消息
-            char buffer[4096];
+            char buffer[PACKAGE_SIZE];
             memset(buffer, 0, sizeof(buffer));
             int len = recv(clientSocket, buffer, sizeof(buffer), 0);
             if (len == -1) {

@@ -54,7 +54,7 @@ func handleConnection(conn net.Conn) {
 	// 	fmt.Printf("The id is: %s\n", id)
 	// }
 	for{
-		buffer := make([]byte, 1024)
+		buffer := make([]byte, Utils.PACKAGE_SIZE)
 	len, err := conn.Read(buffer)
 	if err != nil {
 		fmt.Println("接收客户端数据失败:", err)
